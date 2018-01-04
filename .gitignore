@@ -1,24 +1,19 @@
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
-*.o
-*.a
-*.so
+*.class
 
-# Folders
-_obj
-_test
+# Package Files #
+*.jar
+*.war
+*.ear
 
-# Architecture specific extensions/prefixes
-*.[568vq]
-[568vq].out
+#Gradle temporary files
+target/
 
-*.cgo1.go
-*.cgo2.c
-_cgo_defun.c
-_cgo_gotypes.go
-_cgo_export.*
+#Eclipse files
+**/.project
+**/.classpath
+**/.settings/
 
-_testmain.go
-
-*.exe
-*.test
-*.prof
+#IntelliJ files
+**/*.iml
+**/.idea
+**/.gradle
