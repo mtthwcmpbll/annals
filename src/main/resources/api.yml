@@ -1,0 +1,22 @@
+swagger: "2.0"
+
+info:
+  version: 1.0.0
+  title: Annals API
+  description: A simple API for recording personal data.
+
+schemes:
+  - http
+host: localhost:8080
+basePath: /
+
+paths:
+  /hello:
+    get:
+      summary: Say hello
+      description: A debug endpoint - hello world.
+      responses:
+        200:
+          description: A greeting
+          schema:
+            type: string

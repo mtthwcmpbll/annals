@@ -1,4 +1,4 @@
-package com.snowfort.annals.annals;
+package com.snowfort.annals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

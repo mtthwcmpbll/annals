@@ -1,0 +1,5 @@
+{
+  "basePackage": "com.snowfort.annals",
+  "apiPackage": "com.snowfort.annals.api",
+  "modelPackage": "com.snowfort.annals.model"
+}
