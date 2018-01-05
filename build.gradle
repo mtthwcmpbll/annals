@@ -2,7 +2,6 @@ buildscript {
 	ext {
         kotlinVersion = '1.2.10'
 		springBootVersion = '2.0.0.M7'
-        springfoxVersion = '2.7.0'
 	}
     repositories {
         mavenCentral()
@@ -14,10 +13,6 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
     }
-}
-
-plugins {
-    id 'org.hidetake.swagger.generator' version '2.9.0'
 }
 
 apply plugin: 'kotlin'
@@ -47,59 +42,10 @@ dependencies {
     compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
     compile("org.jetbrains.kotlin:kotlin-reflect")
 	compile('org.springframework.boot:spring-boot-starter-actuator')
-	//compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
+	compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
 	compile('org.springframework.boot:spring-boot-starter-webflux')
-    compile("io.springfox:springfox-swagger2:${springfoxVersion}")
-    compile("io.springfox:springfox-swagger-ui:${springfoxVersion}")
     compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile('io.projectreactor:reactor-test')
-
-    swaggerCodegen 'io.swagger:swagger-codegen-cli:2.3.0'
-    swaggerUI 'org.webjars:swagger-ui:2.2.10'
-}
-
-swaggerSources {
-    api {
-        inputFile = file('src/main/resources/api.yml')
-        code {
-            language = 'spring'
-            templateDir = file('src/swagger-templates/springboot2-server')
-            configFile = file('src/main/resources/swagger-config.json')
-            components = ['models', 'apis', 'apiTests']
-            additionalProperties = [dateLibrary: 'java8']
-            dependsOn validation
-        }
-        ui {
-            outputDir = file("${buildDir}/swagger-ui-api/public/swagger-ui")
-            options.docExpansion = 'full'
-        }
-    }
-}
-
-task cleanSwaggerCode(type: Delete) {
-    delete fileTree("${swaggerSources.api.code.outputDir}") {
-        include '**/*Controller.java'
-    }
-}
-
-compileKotlin.dependsOn swaggerSources.api.ui
-cleanSwaggerCode.dependsOn swaggerSources.api.code
-compileKotlin.dependsOn cleanSwaggerCode
-
-sourceSets {
-    main {
-        java {
-            srcDirs += "${swaggerSources.api.code.outputDir}/src/main/java"
-        }
-        resources {
-            srcDirs += "${buildDir}/swagger-ui-api"
-        }
-    }
-    test {
-        java {
-            srcDirs += "${swaggerSources.api.code.outputDir}/src/main/java"
-        }
-    }
 }

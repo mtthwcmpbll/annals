@@ -6,7 +6,10 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <logger name="reactor.ipc.netty.channel.ContextHandler" level="DEBUG"/>
+    <logger name="reactor.ipc.netty.http.server.HttpServer" level="DEBUG"/>
+
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 
