@@ -4,10 +4,7 @@ import com.snowfort.annals.entry.model.Entry;
 import com.snowfort.annals.entry.services.EntryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,7 +21,7 @@ public class EntryApi {
     }
 
     @PostMapping()
-    public Mono<Entry> postEntry(Entry entry) {
+    public Mono<Entry> postEntry(@RequestBody Entry entry) {
         return entryService.saveEntry(entry);
     }
 

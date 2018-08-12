@@ -13,7 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 
-import java.time.OffsetDateTime;
+import java.util.Date;
 
 import static org.mockito.Mockito.when;
 
@@ -56,8 +56,8 @@ public class EntryApiTests {
 	@Test
 	public void getAllTimelineEvents_SeveralEvents() {
 		// Given...
-		Entry firstObject = new Entry("a", OffsetDateTime.now(), "first event");
-		Entry secondObject = new Entry("b", OffsetDateTime.now(), "second event");
+		Entry firstObject = new Entry("a", new Date(), "first event");
+		Entry secondObject = new Entry("b", new Date(), "second event");
 		when(entryService.getEvents()).thenReturn(Flux.just(firstObject, secondObject));
 
 		// When...
