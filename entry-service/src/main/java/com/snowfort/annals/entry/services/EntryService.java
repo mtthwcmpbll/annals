@@ -4,6 +4,7 @@ import com.snowfort.annals.entry.model.Entry;
 import com.snowfort.annals.entry.model.EntryRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class EntryService {
@@ -16,5 +17,9 @@ public class EntryService {
 
     public Flux<Entry> getEvents() {
         return repository.findAll();
+    }
+
+    public Mono<Entry> saveEntry(Entry entry) {
+        return repository.save(entry);
     }
 }

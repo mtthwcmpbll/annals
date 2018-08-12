@@ -6,8 +6,8 @@
         </encoder>
     </appender>
 
-    <logger name="reactor.ipc.netty.channel.ContextHandler" level="DEBUG"/>
-    <logger name="reactor.ipc.netty.http.server.HttpServer" level="DEBUG"/>
+    <logger name="reactor.ipc.netty.channel.ContextHandler" level="INFO"/>
+    <logger name="reactor.ipc.netty.http.server.HttpServer" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />
