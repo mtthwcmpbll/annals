@@ -44,7 +44,7 @@ public class EntryApiTests {
 
 		// When...
 		WebTestClient.ResponseSpec response = client.get()
-				.uri("/entries")
+				.uri("/api/entries")
 				.accept(MediaType.APPLICATION_JSON_UTF8)
 				.exchange();
 
@@ -62,7 +62,7 @@ public class EntryApiTests {
 
 		// When...
 		WebTestClient.ResponseSpec response = client.get()
-				.uri("/entries")
+				.uri("/api/entries")
 				.accept(MediaType.APPLICATION_JSON_UTF8)
 				.exchange();
 

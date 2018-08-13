@@ -3,7 +3,7 @@ package common.http
 org.springframework.cloud.contract.spec.Contract.make {
     request {
         method 'POST'
-        url '/entries'
+        url '/api/entries'
         body([
                 body: "This is a simple entry."
         ])

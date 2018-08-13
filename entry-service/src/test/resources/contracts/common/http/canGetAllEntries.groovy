@@ -1,7 +1,7 @@
 org.springframework.cloud.contract.spec.Contract.make {
     request {
         method 'GET'
-        url '/entries'
+        url '/api/entries'
         headers {
             header('Content-Type', 'application/json;charset=UTF-8')
         }

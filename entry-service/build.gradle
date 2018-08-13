@@ -8,12 +8,14 @@ buildscript {
         mavenCentral()
         maven { url "https://repo.spring.io/snapshot" }
         maven { url "https://repo.spring.io/milestone" }
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
         classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.4.RELEASE")
-        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:${springCloudContractVersion}"
+        classpath("org.springframework.cloud:spring-cloud-contract-gradle-plugin:${springCloudContractVersion}")
+        classpath("com.moowork.gradle:gradle-node-plugin:1.2.0")
     }
 }
 
@@ -23,6 +25,7 @@ apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'spring-cloud-contract'
+apply plugin: 'com.moowork.node'
 
 group = 'com.snowfort.annals'
 version = '0.0.1-SNAPSHOT'
@@ -33,6 +36,37 @@ repositories {
     jcenter()
     maven { url "https://repo.spring.io/snapshot" }
     maven { url "https://repo.spring.io/milestone" }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-contract-dependencies:${springCloudContractVersion}"
+    }
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.0'
+
+    compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
+    compile("org.jetbrains.kotlin:kotlin-reflect")
+
+    compileOnly("org.springframework.boot:spring-boot-devtools")
+	compile('org.springframework.boot:spring-boot-starter-actuator')
+	compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
+	compile('org.springframework.boot:spring-boot-starter-webflux')
+
+    compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    compile('de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.1.1')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile('io.projectreactor:reactor-test')
+    testCompile("org.springframework.cloud:spring-cloud-starter-contract-verifier")
+}
+
+contracts {
+    basePackageForTests = 'com.snowfort.annals.entry.contract'
+    packageWithBaseClasses = 'com.snowfort.annals.entry.contract'
+    testMode = 'EXPLICIT'
 }
 
 compileKotlin {
@@ -50,36 +84,25 @@ test {
     }
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-contract-dependencies:${springCloudContractVersion}"
-    }
+node {
+    version = '10.8.0'
+    npmVersion = '6.2.0'
+    yarnVersion = '1.9.4'
+    distBaseUrl = 'https://nodejs.org/dist'
+    download = true
+
+    workDir = file("${project.buildDir}/nodejs")
+    npmWorkDir = file("${project.buildDir}/npm")
+    yarnWorkDir = file("${project.buildDir}/yarn")
+    nodeModulesDir = file("${project.projectDir}/src/main/client/node_modules")
 }
 
-dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.0'
-
-    compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
-    compile("org.jetbrains.kotlin:kotlin-reflect")
-
-	compile('org.springframework.boot:spring-boot-starter-actuator')
-	compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
-	compile('org.springframework.boot:spring-boot-starter-webflux')
-
-    compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-
-    compile('de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.1.1')
-	testCompile('org.springframework.boot:spring-boot-starter-test')
-	testCompile('io.projectreactor:reactor-test')
-    testCompile("org.springframework.cloud:spring-cloud-starter-contract-verifier")
+task buildClient(type: YarnTask, dependsOn: ["yarn_install"]) {
+    args = ['build']
 }
-
-contracts {
-    basePackageForTests = 'com.snowfort.annals.entry.contract'
-    packageWithBaseClasses = 'com.snowfort.annals.entry.contract'
-    testMode = 'EXPLICIT'
-
-
-//    baseClassForTests = 'com.snowfort.annals.entry.HttpContractTestBase'
-    // fully qualified name to a class that will be the base class for your generated test classes
+task copyClientBuildArtifacts(type: Copy, dependsOn: ["buildClient"]) {
+    from "src/main/client/build"
+    include "**/*"
+    into "${buildDir}/resources/main/static"
 }
+bootJar.dependsOn(copyClientBuildArtifacts)
