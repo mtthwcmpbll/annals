@@ -97,7 +97,13 @@ node {
     nodeModulesDir = file("${project.projectDir}/src/main/client/node_modules")
 }
 
-task buildClient(type: YarnTask, dependsOn: ["yarn_install"]) {
+task installClientDependencies(type: YarnTask) {
+    args = ['install']
+    execOverrides {
+        it.workingDir = file("${project.projectDir}/src/main/client")
+    }
+}
+task buildClient(type: YarnTask, dependsOn: ['installClientDependencies']) {
     args = ['build']
 }
 task copyClientBuildArtifacts(type: Copy, dependsOn: ["buildClient"]) {
