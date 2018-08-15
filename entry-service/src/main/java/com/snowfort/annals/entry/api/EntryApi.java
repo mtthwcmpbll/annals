@@ -9,7 +9,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping(path = "/entries", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+@RequestMapping(path = "/api/entries", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class EntryApi {
 
     @Autowired
