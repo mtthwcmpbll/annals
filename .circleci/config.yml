@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-    - image: springcloud/pipeline-base
+    - image: circleci/openjdk:11-jdk-node-browsers
 
     working_directory: ~/repo
 
@@ -26,4 +26,4 @@ jobs:
         - ~/.gradle
         key: v1-dependencies-{{ checksum "build.gradle" }}
 
-    - run: gradle test
+    - run: gradle clean test
