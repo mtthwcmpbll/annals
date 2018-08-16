@@ -28,7 +28,12 @@ jobs:
       TERM: dumb
     steps:
     - checkout
-    - run: cf push
+    - run:
+        command: |
+          cf api $CF_API
+          cf login -u $CF_USERNAME -p $CF_PASSWORD
+          cf target -o $CF_ORGANIZATION -s $CF_SPACE
+          cf push
 
 workflows:
   version: 2
