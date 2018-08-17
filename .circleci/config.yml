@@ -167,7 +167,7 @@ workflows:
             only: /^v.*/
           branches:
             ignore: /.*/
-    - deploy-entry-service-snapshot:
+    - deploy-entry-service-release:
         filters:
           tags:
             only: /^v.*/
