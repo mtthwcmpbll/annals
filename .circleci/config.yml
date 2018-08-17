@@ -158,20 +158,20 @@ workflows:
         requires:
         - build-snapshot
 
-    # This workflow builds, publishes, and deploys releases triggered by tags
-    build-deploy-release:
-      jobs:
-      - build-release:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - deploy-entry-service-snapshot:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-          - build-release
+  # This workflow builds, publishes, and deploys releases triggered by tags
+  build-deploy-release:
+    jobs:
+    - build-release:
+        filters:
+          tags:
+            only: /^v.*/
+          branches:
+            ignore: /.*/
+    - deploy-entry-service-snapshot:
+        filters:
+          tags:
+            only: /^v.*/
+          branches:
+            ignore: /.*/
+        requires:
+        - build-release
