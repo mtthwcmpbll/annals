@@ -30,8 +30,8 @@ apply plugin: "org.springframework.boot"
 apply plugin: "io.spring.dependency-management"
 apply plugin: "spring-cloud-contract"
 
-//apply plugin: 'nebula.maven-publish'
-apply plugin: 'maven-publish'
+apply plugin: 'nebula.maven-publish'
+//apply plugin: 'maven-publish'
 apply plugin: "nebula.project"
 
 apply from: "$rootDir/gradle/react-client.gradle"
