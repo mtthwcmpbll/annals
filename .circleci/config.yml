@@ -60,6 +60,7 @@ jobs:
         root: ~/repo
         paths:
         - "**/build/libs/*.jar"
+        - "**/manifest*.yml"
 
   deploy-entry-service-snapshot:
     <<: *cf_defaults
@@ -67,6 +68,7 @@ jobs:
     - attach_workspace:
         at: ~/repo
     - run:
+        name: Push to PCF dev environment
         command: |
           # Log into the CF CLI
           cf api $CF_API
@@ -82,7 +84,12 @@ workflows:
   # This workflow makes sure to build and test all incoming changes regardless of branch
   ci:
     jobs:
-    - test
+    - test:
+        filters:
+          branches:
+            ignore:
+            - develop
+            - master
 
   # This workflow builds, publishes, and deploys snapshots from the develop branch
   build-deploy-snapshot:
@@ -90,10 +97,12 @@ workflows:
     - build-snapshot:
         filters:
           branches:
-            only: /develop/
+            only:
+            - develop
     - deploy-entry-service-snapshot:
         filters:
           branches:
-            only: /develop/
+            only:
+            - develop
         requires:
         - build-snapshot
