@@ -59,6 +59,38 @@ jobs:
     - persist_to_workspace:
         root: ~/repo
         paths:
+        - "**/build/libs/*-SNAPSHOT.jar"
+        - "**/manifest*.yml"
+
+  build-release:
+    <<: *java_defaults
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "build.gradle" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+    - run: gradle dependencies
+    - save_cache:
+        paths:
+        - ~/.gradle
+        key: v1-dependencies-{{ checksum "build.gradle" }}
+    - run:
+        command: |
+          # Save the Google Service Key to a local file
+          echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
+
+          gradle -Prelease.useLastTag=true clean final publish --no-daemon --info
+
+          # Clean up extra artifacts before persiting to workspace
+          find . -name '*-javadoc.jar' -delete
+          find . -name '*-sources.jar' -delete
+          find . -name '*-stubs.jar' -delete
+    - persist_to_workspace:
+        root: ~/repo
+        paths:
         - "**/build/libs/*.jar"
         - "**/manifest*.yml"
 
@@ -73,10 +105,29 @@ jobs:
           # Log into the CF CLI
           cf api $CF_API
           cf auth $CF_USERNAME $CF_PASSWORD
-          cf target -o $CF_ORGANIZATION -s $CF_SPACE
+          cf target -o $CF_ORGANIZATION -s dev
 
           cd entry-service
           cf push -f manifest-dev.yml -p build/libs/entry-service-*-SNAPSHOT.jar
+
+  deploy-entry-service-release:
+      <<: *cf_defaults
+      steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Push to PCF dev environment
+          command: |
+            # Log into the CF CLI
+            cf api $CF_API
+            cf auth $CF_USERNAME $CF_PASSWORD
+            cf target -o $CF_ORGANIZATION -s prod
+
+            export TAG=$(git describe --abbrev=0)
+            export VERSION=${TAG:1}
+            cd entry-service
+            cf push -f manifest-prod.yml -p build/libs/entry-service-$VERSION.jar
 
 workflows:
   version: 2
@@ -106,3 +157,21 @@ workflows:
             - develop
         requires:
         - build-snapshot
+
+    # This workflow builds, publishes, and deploys releases triggered by tags
+    build-deploy-release:
+      jobs:
+      - build-release:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - deploy-entry-service-snapshot:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+          - build-release
