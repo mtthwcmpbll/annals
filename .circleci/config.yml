@@ -2,28 +2,44 @@ version: 2
 jobs:
   build:
     docker:
-    - image: springcloud/pipeline-base
-
+    - image: circleci/openjdk:11-jdk-node-browsers
     working_directory: ~/repo
-
     environment:
       JVM_OPTS: -Xmx1024m
       TERM: dumb
-
     steps:
     - checkout
-
     - restore_cache:
         keys:
         - v1-dependencies-{{ checksum "build.gradle" }}
         # fallback to using the latest cache if no exact match is found
         - v1-dependencies-
-
     - run: gradle dependencies
-
     - save_cache:
         paths:
         - ~/.gradle
         key: v1-dependencies-{{ checksum "build.gradle" }}
+    - run: gradle clean test --info
+  deploy:
+    docker:
+    - image: pcfnorm/rootfs
+    working_directory: ~/repo
+    environment:
+      TERM: dumb
+    steps:
+    - checkout
+    - run:
+        command: |
+          cf api $CF_API
+          cf login -u $CF_USERNAME -p $CF_PASSWORD
+          cf target -o $CF_ORGANIZATION -s $CF_SPACE
+          cf push
 
-    - run: gradle test
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+    - build
+    - deploy:
+        requires:
+        - build
