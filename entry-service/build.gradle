@@ -1,7 +1,7 @@
 buildscript {
     ext {
         kotlinVersion = '1.2.51'
-        springBootVersion = '2.0.3.RELEASE'
+        springBootVersion = '2.1.0.M1'
         springCloudContractVersion = '2.0.1.RELEASE'
     }
     repositories {
@@ -14,7 +14,7 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.4.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath("org.springframework.cloud:spring-cloud-contract-gradle-plugin:${springCloudContractVersion}")
 
         classpath "com.netflix.nebula:nebula-publishing-plugin:8.1.0"
@@ -30,11 +30,10 @@ apply plugin: "org.springframework.boot"
 apply plugin: "io.spring.dependency-management"
 apply plugin: "spring-cloud-contract"
 
-apply plugin: 'nebula.maven-publish'
-//apply plugin: 'maven-publish'
+apply plugin: "nebula.maven-publish"
 apply plugin: "nebula.project"
 
-apply from: "$rootDir/gradle/react-client.gradle"
+apply from: "${rootDir}/gradle/react-client.gradle"
 
 sourceCompatibility = 1.8
 
