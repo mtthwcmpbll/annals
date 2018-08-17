@@ -1,10 +1,10 @@
 ---
 applications:
 - name: entry-service
-  buildpack: https://github.com/cloudfoundry/java-buildpack.git
-  path: build/libs/entry-service-0.2.0-SNAPSHOT.jar
+  buildpacks:
+  - https://github.com/cloudfoundry/java-buildpack.git
   routes:
   - route: entry-service.snowfort.com
   env:
     JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 10.0.+ } }'
-    SPRING_PROFILES_ACTIVE: dev
+    SPRING_PROFILES_ACTIVE: prod
