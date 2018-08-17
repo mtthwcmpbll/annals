@@ -1,0 +1,33 @@
+apply plugin: 'com.moowork.node'
+
+node {
+    version = '10.8.0'
+    npmVersion = '6.2.0'
+    yarnVersion = '1.9.4'
+    distBaseUrl = 'https://nodejs.org/dist'
+    download = true
+
+    workDir = file("${project.buildDir}/nodejs")
+    npmWorkDir = file("${project.buildDir}/npm")
+    yarnWorkDir = file("${project.buildDir}/yarn")
+    nodeModulesDir = file("${project.projectDir}/src/main/client/node_modules")
+}
+
+task installClientDependencies(type: YarnTask) {
+    args = ['install']
+    execOverrides {
+        it.workingDir = file("${project.projectDir}/src/main/client")
+    }
+}
+
+task buildClient(type: YarnTask, dependsOn: ['installClientDependencies']) {
+    args = ['build']
+}
+
+task copyClientBuildArtifacts(type: Copy, dependsOn: ["buildClient"]) {
+    from "src/main/client/build"
+    include "**/*"
+    into "${buildDir}/resources/main/static"
+}
+
+processResources.finalizedBy(copyClientBuildArtifacts)
