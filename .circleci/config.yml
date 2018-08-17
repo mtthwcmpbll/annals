@@ -1,12 +1,24 @@
 version: 2
+
+java_defaults: &java_defaults
+  docker:
+  - image: circleci/openjdk:11-jdk-node-browsers
+  working_directory: ~/repo
+  environment:
+    JVM_OPTS: -Xmx1024m
+    TERM: dumb
+
+cf_defaults: &cf_defaults
+  docker:
+  - image: pcfnorm/rootfs
+  working_directory: ~/repo
+  environment:
+    TERM: dumb
+
 jobs:
-  build:
-    docker:
-    - image: circleci/openjdk:11-jdk-node-browsers
-    working_directory: ~/repo
-    environment:
-      JVM_OPTS: -Xmx1024m
-      TERM: dumb
+
+  test:
+    <<: *java_defaults
     steps:
     - checkout
     - restore_cache:
@@ -19,27 +31,69 @@ jobs:
         paths:
         - ~/.gradle
         key: v1-dependencies-{{ checksum "build.gradle" }}
-    - run: gradle clean test --info
-  deploy:
-    docker:
-    - image: pcfnorm/rootfs
-    working_directory: ~/repo
-    environment:
-      TERM: dumb
-    steps:
-    - checkout
     - run:
         command: |
+          gradle clean test --no-daemon --info
+
+  build-snapshot:
+    <<: *java_defaults
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "build.gradle" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+    - run: gradle dependencies
+    - save_cache:
+        paths:
+        - ~/.gradle
+        key: v1-dependencies-{{ checksum "build.gradle" }}
+    - run:
+        command: |
+          # Save the Google Service Key to a local file
+          echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
+
+          gradle clean snapshot publish --no-daemon --info
+    - persist_to_workspace:
+        root: ~/repo
+        paths:
+        - "**/build/libs/*.jar"
+
+  deploy-entry-service-snapshot:
+    <<: *cf_defaults
+    steps:
+    - attach_workspace:
+        at: ~/repo
+    - run:
+        command: |
+          # Log into the CF CLI
           cf api $CF_API
-          cf login -u $CF_USERNAME -p $CF_PASSWORD
+          cf auth $CF_USERNAME $CF_PASSWORD
           cf target -o $CF_ORGANIZATION -s $CF_SPACE
-          cf push
+
+          cd entry-service
+          cf push -f manifest-dev.yml -p build/libs/entry-service-*-SNAPSHOT.jar
 
 workflows:
   version: 2
-  build_and_deploy:
+
+  # This workflow makes sure to build and test all incoming changes regardless of branch
+  ci:
     jobs:
-    - build
-    - deploy:
+    - test
+
+  # This workflow builds, publishes, and deploys snapshots from the develop branch
+  build-deploy-snapshot:
+    jobs:
+    - build-snapshot:
+        filters:
+          branches:
+            only: /develop/
+    - deploy-entry-service-snapshot:
+        filters:
+          branches:
+            only: /develop/
         requires:
-        - build
+        - build-snapshot
