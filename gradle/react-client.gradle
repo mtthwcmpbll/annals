@@ -22,6 +22,10 @@ task installClientDependencies(type: YarnTask) {
 
 task buildClient(type: YarnTask, dependsOn: ['installClientDependencies']) {
     args = ['build']
+
+    // Set this to force all builds to behave the same way regarding errors.
+    // See https://github.com/facebook/create-react-app/issues/3657
+    environment CI: "true"
 }
 
 task copyClientBuildArtifacts(type: Copy, dependsOn: ["buildClient"]) {
