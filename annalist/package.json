@@ -12,12 +12,13 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "gulp build && react-scripts build",
+    "build": "react-scripts build",
+    "postbuild": "mvy build dist/site",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
   "proxy": "http://localhost:8080",
   "devDependencies": {
-    "semantic-ui": "^2.3.3"
+    "mvy": "^0.1.0"
   }
 }
