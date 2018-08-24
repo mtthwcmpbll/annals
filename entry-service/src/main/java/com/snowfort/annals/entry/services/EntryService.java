@@ -16,10 +16,10 @@ public class EntryService {
     }
 
     public Flux<Entry> getEvents() {
-        return repository.findAll();
+        return Flux.fromIterable(repository.findAll());
     }
 
     public Mono<Entry> saveEntry(Entry entry) {
-        return repository.save(entry);
+        return Mono.just(repository.save(entry));
     }
 }
