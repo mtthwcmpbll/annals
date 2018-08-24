@@ -1,6 +1,7 @@
 apply plugin: "kotlin"
 apply plugin: "kotlin-spring"
 apply plugin: "eclipse"
+apply plugin: "idea"
 
 sourceCompatibility = jvmCompatibility
 targetCompatibility = jvmCompatibility

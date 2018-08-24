@@ -1,0 +1,38 @@
+buildscript {
+    ext {
+
+    }
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+      classpath("com.moowork.gradle:gradle-node-plugin:1.2.0")
+    }
+}
+
+apply plugin: 'com.moowork.node'
+
+node {
+    version = '10.8.0'
+    npmVersion = '6.2.0'
+    yarnVersion = '1.9.4'
+    distBaseUrl = 'https://nodejs.org/dist'
+    download = true
+
+    workDir = file("${project.buildDir}/nodejs")
+    npmWorkDir = file("${project.buildDir}/npm")
+    yarnWorkDir = file("${project.buildDir}/yarn")
+    nodeModulesDir = file("${project.projectDir}/node_modules")
+}
+
+task installClientDependencies(type: YarnTask) {
+    args = ['install']
+}
+
+task build(type: YarnTask, dependsOn: ['installClientDependencies']) {
+    args = ['build']
+
+    // Set this to force all builds to behave the same way regarding errors.
+    // See https://github.com/facebook/create-react-app/issues/3657
+    environment CI: "true"
+}
