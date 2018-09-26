@@ -10,6 +10,7 @@ target/
 build/
 dist/
 out/
+!gradle-wrapper.jar
 
 #Eclipse files
 **/.project
