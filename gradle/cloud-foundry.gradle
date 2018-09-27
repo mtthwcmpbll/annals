@@ -1,0 +1,10 @@
+dependencyManagement {
+    imports {
+        mavenBom "io.pivotal.spring.cloud:spring-cloud-services-dependencies:${springCloudServicesVersion}"
+    }
+}
+
+dependencies {
+    compile("org.springframework.cloud:spring-cloud-spring-service-connector:${springCloudConnectorsVersion}")
+    compile("org.springframework.cloud:spring-cloud-cloudfoundry-connector:${springCloudConnectorsVersion}")
+}
