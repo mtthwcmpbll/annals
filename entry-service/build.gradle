@@ -1,8 +1,7 @@
 buildscript {
     ext {
-        jvmCompatibility = '1.8'
-        kotlinVersion = '1.2.51'
-        springBootVersion = '2.0.4.RELEASE'
+        jvmCompatibility = '11'
+        springBootVersion = '2.1.0.M4'
         springCloudVersion = 'Finchley.SR1'
         springCloudContractVersion = '2.0.1.RELEASE'
         springCloudConnectorsVersion = '2.0.1.RELEASE'
@@ -15,8 +14,6 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
-        classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath("org.springframework.cloud:spring-cloud-contract-gradle-plugin:${springCloudContractVersion}")
 
@@ -27,7 +24,7 @@ buildscript {
     }
 }
 
-apply from: "${rootDir}/gradle/kotlin.gradle"
+apply from: "${rootDir}/gradle/java.gradle"
 apply from: "${rootDir}/gradle/spring-boot.gradle"
 apply from: "${rootDir}/gradle/react-client.gradle"
 
@@ -44,9 +41,9 @@ dependencies {
 
     compile "org.springframework.cloud:spring-cloud-spring-service-connector:${springCloudConnectorsVersion}"
     compile "org.springframework.cloud:spring-cloud-cloudfoundry-connector:${springCloudConnectorsVersion}"
-    compile('org.springframework.boot:spring-boot-starter-data-mongodb')
+    compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
 
-    testCompile('de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.1.1')
+//    testCompile('de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.1.1')
 }
 
 contracts {

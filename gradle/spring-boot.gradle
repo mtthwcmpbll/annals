@@ -17,6 +17,17 @@ dependencyManagement {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            // force SCC's groovy compiler to the 3.x line to support JDK 11
+            if (details.requested.group == 'org.codehaus.groovy') {
+                details.useVersion "3.0.0-alpha-3"
+            }
+        }
+    }
+}
+
 dependencies {
     compileOnly("org.springframework.boot:spring-boot-devtools")
 
