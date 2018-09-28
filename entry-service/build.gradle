@@ -5,7 +5,7 @@ buildscript {
         springCloudVersion = 'Finchley.SR1'
         springCloudServicesVersion = '2.0.1.RELEASE'
         springCloudContractVersion = '2.0.1.RELEASE'
-        springCloudConnectorsVersion = '2.0.1.RELEASE'
+        springCloudConnectorsVersion = '2.0.3.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -27,7 +27,6 @@ buildscript {
 
 apply from: "${rootDir}/gradle/java.gradle"
 apply from: "${rootDir}/gradle/spring-boot.gradle"
-apply from: "${rootDir}/gradle/cloud-foundry.gradle"
 apply from: "${rootDir}/gradle/react-client.gradle"
 
 repositories {
