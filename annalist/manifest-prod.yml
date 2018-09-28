@@ -1,12 +1,8 @@
 ---
 applications:
 - name: annalist
+  memory: 64M
   buildpacks:
-  - https://github.com/cloudfoundry/java-buildpack.git
+  - staticfile_buildpack
   routes:
   - route: annalist.apps.snowfort.com
-  services:
-  - annals-mongodb
-  env:
-    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 10.0.+ } }'
-    SPRING_PROFILES_ACTIVE: prod
