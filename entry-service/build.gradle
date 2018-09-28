@@ -1,8 +1,11 @@
 buildscript {
     ext {
-        kotlinVersion = '1.2.51'
-        springBootVersion = '2.0.3.RELEASE'
+        jvmCompatibility = '11'
+        springBootVersion = '2.1.0.M4'
+        springCloudVersion = 'Finchley.SR1'
+        springCloudServicesVersion = '2.0.1.RELEASE'
         springCloudContractVersion = '2.0.1.RELEASE'
+        springCloudConnectorsVersion = '2.0.3.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -12,66 +15,39 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
-        classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.4.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath("org.springframework.cloud:spring-cloud-contract-gradle-plugin:${springCloudContractVersion}")
 
         classpath "com.netflix.nebula:nebula-publishing-plugin:8.1.0"
         classpath "com.netflix.nebula:nebula-project-plugin:4.1.0"
+
+        classpath("com.moowork.gradle:gradle-node-plugin:1.2.0")
     }
 }
 
-apply plugin: "kotlin"
-apply plugin: "kotlin-spring"
-apply plugin: "eclipse"
-
-apply plugin: "org.springframework.boot"
-apply plugin: "io.spring.dependency-management"
-apply plugin: "spring-cloud-contract"
-
-apply plugin: 'nebula.maven-publish'
-//apply plugin: 'maven-publish'
-apply plugin: "nebula.project"
-
-apply from: "$rootDir/gradle/react-client.gradle"
-
-sourceCompatibility = 1.8
+apply from: "${rootDir}/gradle/java.gradle"
+apply from: "${rootDir}/gradle/spring-boot.gradle"
+apply from: "${rootDir}/gradle/react-client.gradle"
 
 repositories {
-    mavenCentral()
-    jcenter()
-    maven { url "https://repo.spring.io/snapshot" }
-    maven { url "https://repo.spring.io/milestone" }
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-contract-dependencies:${springCloudContractVersion}"
-    }
+    maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local/' }
 }
 
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.2'
 
-    compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
-    compile("org.jetbrains.kotlin:kotlin-reflect")
+    compile "io.springfox:springfox-swagger2:3.0.0-SNAPSHOT"
+    compile "io.springfox:springfox-spring-webflux:3.0.0-SNAPSHOT"
+    compile "io.springfox:springfox-swagger-ui:3.0.0-SNAPSHOT"
 
-    compileOnly("org.springframework.boot:spring-boot-devtools")
-	compile('org.springframework.boot:spring-boot-starter-actuator')
-	compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
-	compile('org.springframework.boot:spring-boot-starter-webflux')
+    compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
 
-    compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    testCompile('de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.1.1')
+}
 
-    // BEGIN JDK11 dependency fix (removed Unsafe.defineClass)
-    compile('net.bytebuddy:byte-buddy:1.8.17')
-    // END JDK11 dependencies
-
-    compile('de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.1.1')
-	testCompile('org.springframework.boot:spring-boot-starter-test')
-	testCompile('io.projectreactor:reactor-test')
-    testCompile("org.springframework.cloud:spring-cloud-starter-contract-verifier")
+contracts {
+    basePackageForTests = 'com.snowfort.annals.entry.contract'
+    packageWithBaseClasses = 'com.snowfort.annals.entry.contract'
 }
 
 publishing {
@@ -84,28 +60,5 @@ publishing {
         service(MavenPublication) {
             from components.java
         }
-    }
-}
-
-//tasks.release.finalizedBy tasks.publish
-
-contracts {
-    basePackageForTests = 'com.snowfort.annals.entry.contract'
-    packageWithBaseClasses = 'com.snowfort.annals.entry.contract'
-    testMode = 'EXPLICIT'
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-test {
-    testLogging {
-        events "failed"
-        exceptionFormat "full"
     }
 }

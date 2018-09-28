@@ -1,0 +1,4 @@
+spring:
+  data:
+    mongodb:
+      uri: ${vcap.services.annals-mongodb.credentials.uri}

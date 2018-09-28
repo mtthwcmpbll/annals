@@ -1,0 +1,50 @@
+apply plugin: "org.springframework.boot"
+apply plugin: "io.spring.dependency-management"
+apply plugin: "spring-cloud-contract"
+
+apply plugin: "nebula.maven-publish"
+apply plugin: "nebula.project"
+
+repositories {
+    maven { url "https://repo.spring.io/snapshot" }
+    maven { url "https://repo.spring.io/milestone" }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        mavenBom "org.springframework.cloud:spring-cloud-contract-dependencies:${springCloudContractVersion}"
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            // force SCC's groovy compiler to the 3.x line to support JDK 11
+            if (details.requested.group == 'org.codehaus.groovy') {
+                details.useVersion "3.0.0-alpha-3"
+            }
+        }
+    }
+}
+
+dependencies {
+    compileOnly("org.springframework.boot:spring-boot-devtools")
+
+    compile('org.springframework.boot:spring-boot-starter-actuator')
+    compile('org.springframework.boot:spring-boot-starter-webflux')
+
+    compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    // BEGIN JDK11 dependency fix (removed Unsafe.defineClass)
+    compile('net.bytebuddy:byte-buddy:1.8.17')
+    // END JDK11 dependencies
+
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('io.projectreactor:reactor-test')
+    testCompile("org.springframework.cloud:spring-cloud-starter-contract-verifier")
+}
+
+contracts {
+    testMode = 'EXPLICIT'
+}

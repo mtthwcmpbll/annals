@@ -5,10 +5,15 @@
 *.war
 *.ear
 
+local.yml
+*.droplet
+
 #Gradle temporary files
 target/
 build/
+dist/
 out/
+!gradle-wrapper.jar
 
 #Eclipse files
 **/.project

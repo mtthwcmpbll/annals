@@ -4,7 +4,9 @@ applications:
   buildpacks:
   - https://github.com/cloudfoundry/java-buildpack.git
   routes:
-  - route: entry-service-dev.snowfort.com
+  - route: entry-service-dev.apps.snowfort.com
+  services:
+  - annals-mongodb
   env:
-    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 10.0.+ } }'
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { repository_root: "https://openjdk-repo.cfapps.io", version: "11.0.+" } }'
     SPRING_PROFILES_ACTIVE: dev

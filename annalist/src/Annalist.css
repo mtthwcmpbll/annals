@@ -1,0 +1,10 @@
+.EntryList {
+    border-left: 4px solid black;
+    padding: 8px;
+}
+
+.Entry {
+    border-left: 4px solid black;
+    padding: 8px;
+    margin-bottom: 8px;
+}

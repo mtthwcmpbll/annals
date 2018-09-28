@@ -5,7 +5,7 @@ java_defaults: &java_defaults
   - image: circleci/openjdk:11-jdk-node-browsers
   working_directory: ~/repo
   environment:
-    JVM_OPTS: -Xmx1024m
+    GRADLE_OPTS: -Xmx2048m
     TERM: dumb
 
 cf_defaults: &cf_defaults
@@ -59,6 +59,7 @@ jobs:
     - persist_to_workspace:
         root: ~/repo
         paths:
+        - "**/dist/*.tgz"
         - "**/build/libs/*-SNAPSHOT.jar"
         - "**/manifest*.yml"
 
@@ -91,10 +92,11 @@ jobs:
     - persist_to_workspace:
         root: ~/repo
         paths:
+        - "**/dist/*.tgz"
         - "**/build/libs/*.jar"
         - "**/manifest*.yml"
 
-  deploy-entry-service-snapshot:
+  deploy-entry-service-dev:
     <<: *cf_defaults
     steps:
     - attach_workspace:
@@ -110,7 +112,7 @@ jobs:
           cd entry-service
           cf push -f manifest-dev.yml -p build/libs/entry-service-*-SNAPSHOT.jar
 
-  deploy-entry-service-release:
+  deploy-entry-service-prod:
       <<: *cf_defaults
       steps:
       - checkout
@@ -128,6 +130,25 @@ jobs:
             export VERSION=${TAG:1}
             cd entry-service
             cf push -f manifest-prod.yml -p build/libs/entry-service-$VERSION.jar
+
+  deploy-annalist-dev:
+        <<: *cf_defaults
+        steps:
+        - attach_workspace:
+            at: ~/repo
+        - run:
+            name: Push to PCF dev environment
+            command: |
+              # Log into the CF CLI
+              cf api $CF_API
+              cf auth $CF_USERNAME $CF_PASSWORD
+              cf target -o $CF_ORGANIZATION -s dev
+
+              mkdir -p annalist/dist/site
+              tar -xzvf annalist/dist/*.tgz -C annalist/dist/site
+
+              cd annalist
+              cf push -f manifest-dev.yml
 
 workflows:
   version: 2
@@ -150,7 +171,14 @@ workflows:
           branches:
             only:
             - develop
-    - deploy-entry-service-snapshot:
+    - deploy-entry-service-dev:
+        filters:
+          branches:
+            only:
+            - develop
+        requires:
+        - build-snapshot
+    - deploy-annalist-dev:
         filters:
           branches:
             only:
@@ -167,7 +195,15 @@ workflows:
             only: /^v.*/
           branches:
             ignore: /.*/
-    - deploy-entry-service-release:
+    - deploy-entry-service-prod:
+        filters:
+          tags:
+            only: /^v.*/
+          branches:
+            ignore: /.*/
+        requires:
+        - build-release
+    - deploy-annalist-prod:
         filters:
           tags:
             only: /^v.*/

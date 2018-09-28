@@ -1,7 +1,6 @@
 package com.snowfort.annals.entry.model;
 
-import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
-
-public interface EntryRepository extends ReactiveMongoRepository<Entry, String> {
+public interface EntryRepository extends ReactiveCrudRepository<Entry, String> {
 }

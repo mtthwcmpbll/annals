@@ -1,0 +1,76 @@
+buildscript {
+    ext {
+
+    }
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath("com.moowork.gradle:gradle-node-plugin:1.2.0")
+    }
+}
+
+buildDir = 'dist'
+
+apply plugin: 'com.moowork.node'
+apply plugin: "maven-publish"
+
+node {
+    version = '10.8.0'
+    npmVersion = '6.2.0'
+    yarnVersion = '1.9.4'
+    distBaseUrl = 'https://nodejs.org/dist'
+    download = true
+
+    workDir = file("${project.buildDir}/nodejs")
+    npmWorkDir = file("${project.buildDir}/npm")
+    yarnWorkDir = file("${project.buildDir}/yarn")
+    nodeModulesDir = file("${project.projectDir}/node_modules")
+}
+
+task installClientDependencies(type: YarnTask) {
+    args = ['install']
+}
+
+task clean(type: Delete) {
+    delete 'dist', 'build'
+}
+
+task build(type: YarnTask, dependsOn: ['installClientDependencies']) {
+    args = ['build']
+
+    // Set this to force all builds to behave the same way regarding errors.
+    // See https://github.com/facebook/create-react-app/issues/3657
+    environment CI: "true"
+}
+
+task siteArchive(type: Tar) {
+    archiveName = "${project.name}-${project.version}.tgz"
+
+    into ('/'){
+        from "${project.buildDir}/site"
+        include '**/*'
+    }
+
+    destinationDir  file("${project.buildDir}")
+    extension 'tgz'
+    compression = Compression.GZIP
+}
+siteArchive.dependsOn(build)
+rootProject.devSnapshot.dependsOn(siteArchive)
+rootProject.snapshot.dependsOn(siteArchive)
+rootProject.candidate.dependsOn(siteArchive)
+rootProject.final.dependsOn(siteArchive)
+
+publishing {
+    repositories {
+        maven {
+            url "gcs://repo.snowfort.com/${project.version.toString().endsWith('-SNAPSHOT') ? 'snapshots' : 'releases'}"
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            artifact tasks.siteArchive
+        }
+    }
+}

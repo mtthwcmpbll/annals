@@ -1,0 +1,8 @@
+---
+applications:
+- name: annalist-dev
+  memory: 64M
+  buildpacks:
+  - staticfile_buildpack
+  routes:
+  - route: annalist-dev.apps.snowfort.com

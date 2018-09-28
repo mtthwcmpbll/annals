@@ -1,10 +1,10 @@
 ---
 applications:
-- name: entry-service
+- name: annalist
   buildpacks:
   - https://github.com/cloudfoundry/java-buildpack.git
   routes:
-  - route: entry-service.apps.snowfort.com
+  - route: annalist.apps.snowfort.com
   services:
   - annals-mongodb
   env:
