@@ -148,26 +148,7 @@ jobs:
               tar -xzvf annalist/dist/*.tgz -C annalist/dist/site
 
               cd annalist
-              cf push -f manifest-dev.yml -p annalist/dist/site
-
-  deploy-annalist-dev:
-        <<: *cf_defaults
-        steps:
-        - attach_workspace:
-            at: ~/repo
-        - run:
-            name: Push to PCF dev environment
-            command: |
-              # Log into the CF CLI
-              cf api $CF_API
-              cf auth $CF_USERNAME $CF_PASSWORD
-              cf target -o $CF_ORGANIZATION -s dev
-
-              mkdir -p annalist/dist/site
-              tar -xzvf annalist/dist/*.tgz -C annalist/dist/site
-
-              cd annalist
-              cf push -f manifest-dev.yml -p annalist/dist/site
+              cf push -f manifest-dev.yml
 
 workflows:
   version: 2

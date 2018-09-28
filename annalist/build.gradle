@@ -56,7 +56,7 @@ task siteArchive(type: Tar) {
     extension 'tgz'
     compression = Compression.GZIP
 }
-siteArchive.dependsOn(build)
+build.finalizedBy(siteArchive)
 rootProject.devSnapshot.dependsOn(siteArchive)
 rootProject.snapshot.dependsOn(siteArchive)
 rootProject.candidate.dependsOn(siteArchive)
