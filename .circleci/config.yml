@@ -59,6 +59,7 @@ jobs:
     - persist_to_workspace:
         root: ~/repo
         paths:
+        - "**/Staticfile"
         - "**/dist/*.tgz"
         - "**/build/libs/*-SNAPSHOT.jar"
         - "**/manifest*.yml"
