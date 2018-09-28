@@ -59,10 +59,8 @@ jobs:
     - persist_to_workspace:
         root: ~/repo
         paths:
-        - "**/Staticfile"
         - "**/dist/*.tgz"
         - "**/build/libs/*-SNAPSHOT.jar"
-        - "**/manifest*.yml"
 
   build-release:
     <<: *java_defaults
@@ -95,11 +93,11 @@ jobs:
         paths:
         - "**/dist/*.tgz"
         - "**/build/libs/*.jar"
-        - "**/manifest*.yml"
 
   deploy-entry-service-dev:
     <<: *cf_defaults
     steps:
+    - checkout
     - attach_workspace:
         at: ~/repo
     - run:
@@ -135,6 +133,7 @@ jobs:
   deploy-annalist-dev:
     <<: *cf_defaults
     steps:
+    - checkout
     - attach_workspace:
         at: ~/repo
     - run:
@@ -154,6 +153,7 @@ jobs:
   deploy-annalist-prod:
     <<: *cf_defaults
     steps:
+    - checkout
     - attach_workspace:
         at: ~/repo
     - run:
