@@ -1,42 +1,27 @@
 version: 2.1
 
-java_defaults: &java_defaults
-  docker:
-  - image: circleci/openjdk:11-jdk-node-browsers
-  working_directory: ~/repo
-  environment:
-    GRADLE_OPTS: -Xmx2048m
-    TERM: dumb
+executors:
+  java:
+    docker:
+    - image: circleci/openjdk:11-jdk-node-browsers
+    working_directory: ~/repo
+    environment:
+      GRADLE_OPTS: -Xmx2048m
+      TERM: dumb
+  cf:
+    docker:
+    - image: pcfnorm/rootfs
+    working_directory: ~/repo
+    environment:
+      TERM: dumb
 
-cf_defaults: &cf_defaults
-  docker:
-  - image: pcfnorm/rootfs
-  working_directory: ~/repo
-  environment:
-    TERM: dumb
-
-jobs:
-
-  test:
-    <<: *java_defaults
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - v1-dependencies-{{ checksum "build.gradle" }}
-        # fallback to using the latest cache if no exact match is found
-        - v1-dependencies-
-    - run: gradle dependencies
-    - save_cache:
-        paths:
-        - ~/.gradle
-        key: v1-dependencies-{{ checksum "build.gradle" }}
-    - run:
-        command: |
-          gradle clean test --no-daemon --info
-
-  build-snapshot:
-    <<: *java_defaults
+commands:
+  gradle-build:
+    description: "Build the project using Gradle"
+    parameters:
+      tasks:
+        type: string
+        default: "clean test"
     steps:
     - checkout
     - restore_cache:
@@ -55,34 +40,7 @@ jobs:
           echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
           export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
 
-          gradle clean snapshot publish --no-daemon --info
-    - persist_to_workspace:
-        root: ~/repo
-        paths:
-        - "**/dist/*.tgz"
-        - "**/build/libs/*-SNAPSHOT.jar"
-
-  build-release:
-    <<: *java_defaults
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - v1-dependencies-{{ checksum "build.gradle" }}
-        # fallback to using the latest cache if no exact match is found
-        - v1-dependencies-
-    - run: gradle dependencies
-    - save_cache:
-        paths:
-        - ~/.gradle
-        key: v1-dependencies-{{ checksum "build.gradle" }}
-    - run:
-        command: |
-          # Save the Google Service Key to a local file
-          echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
-
-          gradle -Prelease.useLastTag=true clean final publish --no-daemon --info
+          gradle << parameters.tasks >> --no-daemon --info
 
           # Clean up extra artifacts before persiting to workspace
           find . -name '*-javadoc.jar' -delete
@@ -91,84 +49,87 @@ jobs:
     - persist_to_workspace:
         root: ~/repo
         paths:
-        - "**/dist/*.tgz"
-        - "**/build/libs/*.jar"
+        - "**/dist/site/**"
+        - "**/build/libs/*-SNAPSHOT.jar"
+
+  cf-push:
+    description: "Push app to Cloud Foundry"
+    parameters:
+      baseDir:
+        type: string
+      args:
+        type: string
+        default: ""
+    steps:
+    - checkout
+    - attach_workspace:
+        at: ~/repo
+    - run:
+        name: Push to PCF dev environment
+        command: |
+          cf api $CF_API
+          cf auth $CF_USERNAME $CF_PASSWORD
+          cf target -o $CF_ORGANIZATION -s $ENV
+
+          cd << parameters.baseDir >>
+          cf push -f manifest-$ENV.yml << parameters.args >>
+
+jobs:
+  test:
+    executor: java
+    steps:
+    - gradle-build:
+        tasks: clean test
+
+  build-snapshot:
+    executor: java
+    steps:
+    - gradle-build:
+        tasks: clean snapshot publish
+
+  build-release:
+    executor: java
+    steps:
+    - gradle-build:
+        tasks: clean release publish
 
   deploy-entry-service-dev:
-    <<: *cf_defaults
+    executor: cf
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      ENV: dev
     steps:
-    - checkout
-    - attach_workspace:
-        at: ~/repo
-    - run:
-        name: Push to PCF dev environment
-        command: |
-          # Log into the CF CLI
-          cf api $CF_API
-          cf auth $CF_USERNAME $CF_PASSWORD
-          cf target -o $CF_ORGANIZATION -s dev
-
-          cd entry-service
-          cf push -f manifest-dev.yml -p build/libs/entry-service-*-SNAPSHOT.jar
+    - cf-push:
+        baseDir: entry-service
+        args: -p build/libs/entry-service-*.jar
 
   deploy-entry-service-prod:
-    <<: *cf_defaults
+    executor: cf
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      ENV: prod
     steps:
-    - checkout
-    - attach_workspace:
-        at: ~/repo
-    - run:
-        name: Push to PCF dev environment
-        command: |
-          # Log into the CF CLI
-          cf api $CF_API
-          cf auth $CF_USERNAME $CF_PASSWORD
-          cf target -o $CF_ORGANIZATION -s prod
-
-          export TAG=$(git describe --abbrev=0)
-          export VERSION=${TAG:1}
-          cd entry-service
-          cf push -f manifest-prod.yml -p build/libs/entry-service-$VERSION.jar
+    - cf-push:
+        baseDir: entry-service
+        args: -p build/libs/entry-service-*.jar
 
   deploy-annalist-dev:
-    <<: *cf_defaults
+    executor: cf
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      ENV: dev
     steps:
-    - checkout
-    - attach_workspace:
-        at: ~/repo
-    - run:
-        name: Push to PCF dev environment
-        command: |
-          # Log into the CF CLI
-          cf api $CF_API
-          cf auth $CF_USERNAME $CF_PASSWORD
-          cf target -o $CF_ORGANIZATION -s dev
-
-          mkdir -p annalist/dist/site
-          tar -xzvf annalist/dist/*.tgz -C annalist/dist/site
-
-          cd annalist
-          cf push -f manifest-dev.yml
+    - cf-push:
+        baseDir: annalist
 
   deploy-annalist-prod:
-    <<: *cf_defaults
+    executor: cf
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      ENV: prod
     steps:
-    - checkout
-    - attach_workspace:
-        at: ~/repo
-    - run:
-        name: Push to PCF dev environment
-        command: |
-          # Log into the CF CLI
-          cf api $CF_API
-          cf auth $CF_USERNAME $CF_PASSWORD
-          cf target -o $CF_ORGANIZATION -s prod
-
-          mkdir -p annalist/dist/site
-          tar -xzvf annalist/dist/*.tgz -C annalist/dist/site
-
-          cd annalist
-          cf push -f manifest-prod.yml
+    - cf-push:
+        baseDir: annalist
 
 workflows:
   version: 2
