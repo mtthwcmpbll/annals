@@ -46,11 +46,15 @@ commands:
           find . -name '*-javadoc.jar' -delete
           find . -name '*-sources.jar' -delete
           find . -name '*-stubs.jar' -delete
+
+  persist-build-artifacts:
+    description: "Saves build artifacts for future build steps."
+    steps:
     - persist_to_workspace:
-        root: ~/repo
-        paths:
-        - "**/dist/site/**"
-        - "**/build/libs/*-SNAPSHOT.jar"
+      root: ~/repo
+      paths:
+      - "**/dist/site/**"
+      - "**/build/libs/*-SNAPSHOT.jar"
 
   cf-push:
     description: "Push app to Cloud Foundry"
@@ -86,12 +90,14 @@ jobs:
     steps:
     - gradle-build:
         tasks: clean snapshot publish
+    - persist-build-artifacts
 
   build-release:
     executor: java
     steps:
     - gradle-build:
         tasks: clean release publish
+    - persist-build-artifacts
 
   deploy-entry-service-dev:
     executor: cf
